@@ -3,6 +3,16 @@
   "vendorId": "0x5954",
   "productId": "0x0003",
   "lighting": "none",
+  "secure": {
+    "unlock": [
+      [
+        "0,0"
+      ],
+      [
+        "0,1"
+      ]
+    ]
+  },
   "matrix": {
     "rows": 10,
     "cols": 6

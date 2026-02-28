@@ -140,6 +140,24 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     }
 }
 
+// Функция приема данных от компьютера
+void raw_hid_receive_user(uint8_t *data, uint8_t length) {
+    // Договоримся, что если первый байт данных равен 0x42, 
+    // значит это сообщение о смене раскладки.
+    if (data[0] == 0x42) {
+        os_layout[0] = data[1];
+        os_layout[1] = data[2];
+        // display_on(true);
+        if((os_layout[0] == 'E' && os_layout[1] == 'N') || (os_layout[0] == 'U' && os_layout[1] == 'S')) {
+            // Для английского языка выключим подсветку
+            my_backlight_disable();
+        } else {
+            // Для остальных языков - включим
+            my_backlight_enable();
+        }
+    }
+}
+
 void housekeeping_task_user(void) {
     // Draw the display
     ui_task();

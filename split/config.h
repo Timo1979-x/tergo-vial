@@ -74,11 +74,6 @@
 // 255 = 100% мощности.
 #define BACKLIGHT_LIMIT_VAL 255
 
-
-// #define RAW_USAGE_PAGE 0xFF60
-// #define RAW_USAGE_ID 0x61
-
-
 // Длительность показа лого в миллисекундах
 #define SHOW_LOGO_DURATION 3000
 #undef QUANTUM_PAINTER_DISPLAY_TIMEOUT

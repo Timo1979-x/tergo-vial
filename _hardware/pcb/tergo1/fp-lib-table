@@ -1,0 +1,4 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "_tergo_lib")(type "KiCad")(uri "${TERGO_LIBS}/_tergo_lib.pretty")(options "")(descr ""))
+)

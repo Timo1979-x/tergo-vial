@@ -1,0 +1,63 @@
+(footprint "MountHole"
+	(version 20241229)
+	(generator "pcbnew")
+	(generator_version "9.0")
+	(layer "F.Cu")
+	(property "Reference" "H1"
+		(at 0.5 -2.77 0)
+		(layer "F.SilkS")
+		(hide yes)
+		(uuid "32de1206-1e1d-4542-8c72-ec10a518dec4")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "CaseHole"
+		(at 0.5 -3.77 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "89ca1ecd-ea18-4b3e-8ac8-68f05ddfd14e")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" "~"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "1e076009-3e3b-455a-9b2d-2b23c780c038")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "79a82f4d-4442-4ebe-874c-4c38ef21f74e")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr through_hole)
+	(pad "" np_thru_hole circle
+		(at 0 0)
+		(size 4.1 4.1)
+		(drill 4.1)
+		(layers "*.Cu" "*.Mask")
+		(uuid "131d7f53-319b-46e5-b75b-a27a0d9594c7")
+	)
+	(embedded_fonts no)
+)

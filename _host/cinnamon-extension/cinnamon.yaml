@@ -1,0 +1,115 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible.json#/$defs/playbook
+
+---
+- name: Deploy Cinnamon extension for interaction with T-Ergo keyboard
+  hosts: localhost # Замените на группу хостов из inventory, если раскатываете по сети
+  connection: local # Удалите эту строку, если подключаетесь по SSH
+  become: false # По умолчанию работаем от обычного пользователя
+
+  vars:
+    ext_uuid: "cinnamon-to-tergo2@tlukashevich.com" # UID расширения
+    ext_dir: "{{ ansible_env.HOME }}/.local/share/cinnamon/extensions/{{ ext_uuid }}"
+    src_files_dir: "./"
+    
+    # Укажите VID и PID вашей клавиатуры для udev. В 16-ричной системе счисления, но без префикса 0x
+    usb_vid: "5954"
+    usb_pid: "0003"
+    hid_raw_usage_page: "FF60"
+
+  tasks:
+    # ==========================================
+    # БЛОК 1: Системные настройки (требуют root)
+    # ==========================================
+    - name: System tasks
+      become: true # Запрашиваем sudo для этих задач
+      block:
+        - name: Install required system libraries (libhidapi-hidraw0)
+          apt:
+            name: libhidapi-hidraw0
+            state: present
+            update_cache: yes
+
+        - name: Create udev rule for USB keyboard
+          copy:
+            dest: /etc/udev/rules.d/99-tergo-raw-hid.rules
+            content: |
+              # Allow rw access to the raw HID device for the T-Ergo keyboard
+              SUBSYSTEM=="hidraw", ATTRS{idVendor}=="{{ usb_vid }}", ATTRS{idProduct}=="{{ usb_pid }}", MODE="0666"
+              SUBSYSTEM=="usb", ATTRS{idVendor}=="{{ usb_vid }}", ATTRS{idProduct}=="{{ usb_pid }}", MODE="0666"
+            owner: root
+            group: root
+            mode: '0644'
+          notify: Reload udev
+
+    # ==========================================
+    # БЛОК 2: Настройки пользователя (без root)
+    # ==========================================
+    - name: User tasks
+      block:
+        - name: Ensure extension directory exists
+          file:
+            path: "{{ ext_dir }}"
+            state: directory
+            mode: '0755'
+
+        - name: Copy extension files (metadata.json, extension.js)
+          ansible.builtin.template:
+            src: "{{ src_files_dir }}/{{ item }}"
+            dest: "{{ ext_dir }}/{{ item | splitext | first }}"
+            mode: '0644'
+          loop:
+            - metadata.json.j2
+            - extension.js.j2
+
+        # - name: Copy extension files (metadata.json, extension.js)
+        #   copy:
+        #     src: "{{ src_files_dir }}/{{ item }}"
+        #     dest: "{{ ext_dir }}/{{ item }}"
+        #     mode: '0644'
+        #   loop:
+        #     - metadata.json
+        #     - extension.js
+
+        - name: Copy compiled C binary (send_hid)
+          copy:
+            src: "{{ src_files_dir }}/send_hid"
+            dest: "{{ ext_dir }}/send_hid"
+            mode: '0755' # Делаем файл исполняемым
+
+        - name: Enable the extension in Cinnamon (gsettings)
+          shell: |
+            # Пробрасываем переменную DBUS, чтобы gsettings работал из-под Ansible/SSH
+            export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -u)/bus"
+            
+            # Читаем текущий список включенных расширений
+            CURRENT=$(gsettings get org.cinnamon enabled-extensions)
+            
+            # Проверяем, есть ли уже наше расширение в списке
+            if [[ "$CURRENT" != *"'{{ ext_uuid }}'"* ]]; then
+              if [ "$CURRENT" = "@as []" ] || [ "$CURRENT" = "[]" ]; then
+                # Если список пуст
+                gsettings set org.cinnamon enabled-extensions "['{{ ext_uuid }}']"
+                echo "changed"
+              else
+                # Если в списке уже есть другие расширения, аккуратно добавляем наше в конец
+                NEW=$(echo "$CURRENT" | sed "s/]$/, '{{ ext_uuid }}']/")
+                gsettings set org.cinnamon enabled-extensions "$NEW"
+                echo "changed"
+              fi
+            else
+              echo "ok"
+            fi
+          args:
+            executable: /bin/bash
+          register: gsettings_result
+          changed_when: "'changed' in gsettings_result.stdout"
+
+  # ==========================================
+  # ХЕНДЛЕРЫ: Выполняются только при изменениях
+  # ==========================================
+  handlers:
+    - name: Reload udev
+      become: true
+      shell: |
+        udevadm control --reload-rules
+        udevadm trigger

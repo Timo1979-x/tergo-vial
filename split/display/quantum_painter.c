@@ -3,7 +3,7 @@
 #include "display/computer.qff.h"
 #include "display/logo.qgf.h"
 
-#pragma message "DYNAMIC_KEYMAP_EEPROM_MAX_ADDR " DESCRIBE_MACRO_VALUE(DYNAMIC_KEYMAP_EEPROM_MAX_ADDR)
+#pragma message "TAP_DANCE_ENABLE " DESCRIBE_MACRO_VALUE(TAP_DANCE_ENABLE)
 
 static painter_font_handle_t display_font;
 static painter_image_handle_t logo;
@@ -20,7 +20,6 @@ void display_on(bool on) {
     if(on) {
       last_matrix_activity_trigger();
     }
-    dprint("VIAL tergo")
 }
 
 void init_logo_timer(void) {
@@ -48,7 +47,7 @@ void start_display_logo(void) {
   char buf[200];
   sprintf(buf, "display: %p, display_font %p, gfx_logo: %p, gfx_logo_length: %ld, logo: %p\n", 
     display, display_font, gfx_logo, gfx_logo_length, logo);
-  dprint(buf);
+  print(buf);
   init_logo_timer();
 }
 
@@ -78,6 +77,7 @@ void ui_task(void) {
     (led_state.caps_lock ? 4 : 0) |
     (led_state.num_lock ? 2 : 0)
   ;
+  bool enable_display = false;
   // Перерисовка экрана, только если изменилось состояние CAPS/NUM:
   if(last_led_bits != led_bits) {
     // qp_power(display, true);
@@ -91,7 +91,7 @@ void ui_task(void) {
       leds[1] = 'N';
     }
     qp_drawtext(display, 0, 25, display_font, leds);
-    display_on(true);
+    enable_display = true;
   }
 
   static char old_os_layout[2];
@@ -100,7 +100,7 @@ void ui_task(void) {
     old_os_layout[0] = os_layout[0];
     old_os_layout[1] = os_layout[1];
     qp_drawtext(display, 0, 0, display_font, os_layout);
-    display_on(true);
+    enable_display = true;
   }
 
   static char old_layer_name[2];
@@ -110,6 +110,9 @@ void ui_task(void) {
     old_layer_name[0] = current_layer_name[0];
     old_layer_name[1] = current_layer_name[1];
     qp_drawtext(display, 0, 50, display_font, current_layer_name);
+    enable_display = true;
+  }
+  if(enable_display) {
     display_on(true);
   }
 }

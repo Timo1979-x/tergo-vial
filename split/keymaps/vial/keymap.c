@@ -1,6 +1,9 @@
 #include QMK_KEYBOARD_H
 #include <raw_hid.h>
 #include "display/quantum_painter.h"
+// #include "quantum.h"
+// #include "examples.h"
+#include "keymap_introspection.h"
 
 extern backlight_config_t backlight_config;
 
@@ -12,10 +15,6 @@ enum {
     TD_SHIFT_CAPS
 };
 
-// tap_dance_action_t tap_dance_actions[] = {
-//     [TD_SHIFT_CAPS] = ACTION_TAP_DANCE_DOUBLE(KC_LSFT, KC_CAPS)
-// };
-
 // Переменная, где будет храниться текущая раскладка
 char os_layout[] = "??";
 
@@ -24,6 +23,10 @@ enum layer_number {
     _LAYER_ALTERNATIVE,
     _LAYER_CONTROL,
 };
+
+extern tap_dance_action_t tap_dance_actions[];
+
+tap_dance_action_t my_tap_dance_actions[] = { [TD_SHIFT_CAPS] = ACTION_TAP_DANCE_DOUBLE(KC_LSFT, KC_CAPS) };
 
 char* get_current_layer_name(void) {
     switch (get_highest_layer(layer_state)) {
@@ -99,6 +102,7 @@ void my_backlight_enable(void) {
     // backlight_config.enable = 1;
     // Применяем уровень яркости к железу (если выключено - 0)
     uint8_t lvl = backlight_config.enable ? backlight_config.level : BACKLIGHT_DEFAULT_LEVEL;
+    print("my_backlight_enable\n");
     backlight_set(lvl ? lvl : 1);
 }
 
@@ -106,6 +110,7 @@ void my_backlight_disable(void) {
     // Стандартные функции изменения подсветки пишут в EEPROM/FLASH, поэтому будем управлять подсветкой напрямую
     // backlight_config.enable = 0;
     // Применяем уровень яркости к железу (если выключено - 0)
+    print("my_backlight_disable\n");
     backlight_set(0);
 }
 
@@ -115,6 +120,9 @@ void keyboard_post_init_user(void) {
     debug_matrix = false; // печатать матрицу кнопок при изменении их состояния
     debug_keyboard = true; // Печатать события клавиатуры при нажатиях:
     debug_mouse = false;
+    // Один tap dance будет зашит в код
+    tap_dance_actions[TD_SHIFT_CAPS] = my_tap_dance_actions[TD_SHIFT_CAPS];
+    
     keyboard_post_init_user_display();
 }
 
@@ -123,14 +131,14 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case EK_LOGO:
             if (!record->event.pressed) {
                 if(is_keyboard_master()) {
-                    dprint("I'm master half\n");
+                    print("I'm master half\n");
                 } else {
-                    dprint("I'm slave half\n");
+                    print("I'm slave half\n");
                 }
                 if(is_keyboard_left()) {
-                    dprint("I'm left half\n");
+                    print("I'm left half\n");
                 } else {
-                    dprint("I'm right half\n");
+                    print("I'm right half\n");
                 }
                 // при отпускании кнопки снова отобразим на дисплее логотип на определенное время
                 start_display_logo();
@@ -142,20 +150,31 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
 // Функция приема данных от компьютера
 void raw_hid_receive_user(uint8_t *data, uint8_t length) {
+    display_on(true);
+    print("hid message\n");
+    char buf[200];
+    char buf2[20];
+    sprintf(buf, "raw hid len: %d", length);
+    for(uint8_t i = 0; i<length; i++) {
+        sprintf(buf2, " %02x", data[i]);
+        strcat(buf, buf2);
+    }
+    strcat(buf, "\n");
+    print(buf);
     // Договоримся, что если первый байт данных равен 0x42, 
     // значит это сообщение о смене раскладки.
-    if (data[0] == 0x42) {
-        os_layout[0] = data[1];
-        os_layout[1] = data[2];
-        // display_on(true);
-        if((os_layout[0] == 'E' && os_layout[1] == 'N') || (os_layout[0] == 'U' && os_layout[1] == 'S')) {
-            // Для английского языка выключим подсветку
-            my_backlight_disable();
-        } else {
-            // Для остальных языков - включим
-            my_backlight_enable();
-        }
-    }
+    // if (data[0] == 0x42) {
+    //     os_layout[0] = data[1];
+    //     os_layout[1] = data[2];
+    //     // display_on(true);
+    //     if((os_layout[0] == 'E' && os_layout[1] == 'N') || (os_layout[0] == 'U' && os_layout[1] == 'S')) {
+    //         // Для английского языка выключим подсветку
+    //         my_backlight_disable();
+    //     } else {
+    //         // Для остальных языков - включим
+    //         my_backlight_enable();
+    //     }
+    // }
 }
 
 void housekeeping_task_user(void) {

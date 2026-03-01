@@ -18,11 +18,15 @@
  *  These options are also useful to firmware size reduction.
  */
 
-/* disable debug print */
-//#define NO_DEBUG
+// disable debug print:
+#define NO_DEBUG
+// force enable debug output:
+// #undef NO_DEBUG
 
-/* disable print */
+// disable print:
 //#define NO_PRINT
+// force enable print:
+#undef NO_PRINT
 
 /* disable action features */
 //#define NO_ACTION_LAYER
@@ -50,7 +54,9 @@
 // Для того, чтобы скомпилировалась поддержка обычной подсветки с использованием аппаратного PWM:
 #define BACKLIGHT_PWM_DRIVER PWMD7
 // pwm channel зависит от того, какой вывод используется для PWM
-#define BACKLIGHT_PWM_CHANNEL RP2040_PWM_CHANNEL_B
+#define BACKLIGHT_PWM_CHANNEL RP2040_PWM_CHANNEL_
+// это мне посоветовал gemimi, но вроде бы нигде в кодовой базе нет такой константы:
+#define SPLIT_BACKLIGHT_ENABLE
 
 // // Указываем пин, к которому подключен затвор транзистора
 #define BACKLIGHT_PIN GP15
@@ -75,6 +81,6 @@
 #define BACKLIGHT_LIMIT_VAL 255
 
 // Длительность показа лого в миллисекундах
-#define SHOW_LOGO_DURATION 3000
+#define SHOW_LOGO_DURATION 4000
 #undef QUANTUM_PAINTER_DISPLAY_TIMEOUT
 #define QUANTUM_PAINTER_DISPLAY_TIMEOUT 10000

@@ -52,6 +52,10 @@ void start_display_logo(void) {
 }
 
 void ui_task(void) {
+  static uint8_t last_led_bits = 0;
+  static char old_os_layout[2];
+  static char old_layer_name[2];
+  
   // display_logo_timer != 0, то происходит показ логотипа
   if(display_logo_timer) {
     if (timer_elapsed32(display_logo_timer) <= SHOW_LOGO_DURATION) {
@@ -62,6 +66,10 @@ void ui_task(void) {
       qp_stop_animation(logo_animation_token);
       logo_animation_token = 0;
       qp_clear(display);
+      // обнулить раскладку, светодиоды и слой, чтобы они сразу перерисовались:
+      last_led_bits = 0xff;
+      old_os_layout[0] = 0;
+      old_layer_name[0] = 0;
     }
   }
 
@@ -71,7 +79,6 @@ void ui_task(void) {
   }
   last_draw_time = timer_read32();
   
-  static uint8_t last_led_bits = 0;
   led_t led_state = host_keyboard_led_state();
   uint8_t led_bits = 
     (led_state.caps_lock ? 4 : 0) |
@@ -94,7 +101,6 @@ void ui_task(void) {
     enable_display = true;
   }
 
-  static char old_os_layout[2];
   if((os_layout[0] != old_os_layout[0]) || (os_layout[1] != old_os_layout[1])) {
     // Перерисовка только если язык ввода изменился
     old_os_layout[0] = os_layout[0];
@@ -103,7 +109,6 @@ void ui_task(void) {
     enable_display = true;
   }
 
-  static char old_layer_name[2];
   char * current_layer_name = get_current_layer_name();
   if((current_layer_name[0] != old_layer_name[0]) || (current_layer_name[1] != old_layer_name[1])) {
     // Перерисовка только если слой изменился

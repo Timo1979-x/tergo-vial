@@ -102,7 +102,7 @@ void my_backlight_enable(void) {
     // backlight_config.enable = 1;
     // Применяем уровень яркости к железу (если выключено - 0)
     uint8_t lvl = backlight_config.enable ? backlight_config.level : BACKLIGHT_DEFAULT_LEVEL;
-    print("my_backlight_enable\n");
+    backlight_config.enable = true;
     backlight_set(lvl ? lvl : 1);
 }
 
@@ -110,7 +110,7 @@ void my_backlight_disable(void) {
     // Стандартные функции изменения подсветки пишут в EEPROM/FLASH, поэтому будем управлять подсветкой напрямую
     // backlight_config.enable = 0;
     // Применяем уровень яркости к железу (если выключено - 0)
-    print("my_backlight_disable\n");
+    backlight_config.enable = false;
     backlight_set(0);
 }
 
@@ -118,7 +118,7 @@ void my_backlight_disable(void) {
 void keyboard_post_init_user(void) {
     debug_enable = true; // Если = false, всё равно выводится матрица
     debug_matrix = false; // печатать матрицу кнопок при изменении их состояния
-    debug_keyboard = true; // Печатать события клавиатуры при нажатиях:
+    debug_keyboard = false; // Печатать события клавиатуры при нажатиях:
     debug_mouse = false;
     // Один tap dance будет зашит в код
     tap_dance_actions[TD_SHIFT_CAPS] = my_tap_dance_actions[TD_SHIFT_CAPS];
@@ -149,32 +149,33 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 }
 
 // Функция приема данных от компьютера
-void raw_hid_receive_user(uint8_t *data, uint8_t length) {
-    display_on(true);
-    print("hid message\n");
-    char buf[200];
-    char buf2[20];
-    sprintf(buf, "raw hid len: %d", length);
-    for(uint8_t i = 0; i<length; i++) {
-        sprintf(buf2, " %02x", data[i]);
-        strcat(buf, buf2);
-    }
-    strcat(buf, "\n");
-    print(buf);
+void raw_hid_receive_kb(uint8_t *data, uint8_t length) {
+    // display_on(true);
+    // print("hid message\n");
+    // char buf[200];
+    // char buf2[20];
+    // sprintf(buf, "raw hid len: %d", length);
+    // for(uint8_t i = 0; i<length; i++) {
+    //     sprintf(buf2, " %02x", data[i]);
+    //     strcat(buf, buf2);
+    // }
+    // strcat(buf, "\n");
+    // print(buf);
+
     // Договоримся, что если первый байт данных равен 0x42, 
     // значит это сообщение о смене раскладки.
-    // if (data[0] == 0x42) {
-    //     os_layout[0] = data[1];
-    //     os_layout[1] = data[2];
-    //     // display_on(true);
-    //     if((os_layout[0] == 'E' && os_layout[1] == 'N') || (os_layout[0] == 'U' && os_layout[1] == 'S')) {
-    //         // Для английского языка выключим подсветку
-    //         my_backlight_disable();
-    //     } else {
-    //         // Для остальных языков - включим
-    //         my_backlight_enable();
-    //     }
-    // }
+    if (data[0] == 0xfc && data[1] == 0x42) {
+        os_layout[0] = data[2];
+        os_layout[1] = data[3];
+        // display_on(true);
+        if((os_layout[0] == 'E' && os_layout[1] == 'N') || (os_layout[0] == 'U' && os_layout[1] == 'S')) {
+            // Для английского языка выключим подсветку
+            my_backlight_disable();
+        } else {
+            // Для остальных языков - включим
+            my_backlight_enable();
+        }
+    }
 }
 
 void housekeeping_task_user(void) {

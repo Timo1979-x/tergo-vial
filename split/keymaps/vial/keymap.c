@@ -43,13 +43,14 @@ char* get_current_layer_name(void) {
 #define TO_MAIN TO(_LAYER_MAIN)
 
 #define QK_BOOT QK_BOOTLOADER
-#define KC_RBGI  RGUI_T(KC_RBRC)
-#define KC_BSCT  RCTL_T(KC_BSLS)
-#define KC_QTSH  RSFT_T(KC_QUOT)
-#define KC_SLSF  RSFT_T(KC_LSCR)
-#define KC_NLCT  RCTL_T(KC_LNUM)
-#define KC_ETAL  RALT_T(KC_ENT)
-#define TD_CPS1 TD(TD_SHIFT_CAPS)
+#define KC_RBGI  RGUI_T(KC_RBRC) // При удержании - right win, при нажатии - '}'
+#define KC_BSCT  RCTL_T(KC_BSLS) // При удержании - RCTRL, при нажатии - '\'
+#define KC_QTSH  RSFT_T(KC_QUOT) // При удержании - RSHift, при нажатии - '"' 
+#define KC_SLSF  RSFT_T(KC_LSCR) // При удержании - RSHift, при нажатии - Scroll lock
+#define KC_NLCT  RCTL_T(KC_LNUM) // При удержании - R ctrl, при нажатии - Num lock
+#define KC_ETAL  RALT_T(KC_ENT)  // При удержании - R alt, при нажатии - Enter
+#define TD_CPS1 TD(TD_SHIFT_CAPS) // tap dance - двойное нажатие shift -> Caps lock
+#define TD_MENU TD(TD_RIGHT_BRACKET_MENU) // tap dance - двойное нажатие "}" -> Menu "≡" 
 
 // Раскладка Jiran, почти оригинальная
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -71,11 +72,11 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     //+--------+--------+--------+--------+--------+--------+                 +--------+--------+--------+--------+--------+--------+
         KC_GRV,  KC_F1,   KC_F2,   KC_F3,   KC_F4,   KC_F5,                     KC_F6,   KC_F7,   KC_F8,   KC_F9,   KC_F10,  KC_EQL,
     //+--------+--------+--------+--------+--------+--------+                 +--------+--------+--------+--------+--------+--------+
-        KC_TAB,  _______, KC_HOME, TO_CTRL, KC_PGUP, TO_CTRL,                   TO_CTRL, KC_PGUP, TO_CTRL, KC_HOME, KC_INS,  KC_DEL,
+        KC_TAB,  _______, KC_HOME, KC_UP  , KC_PGUP, TO_CTRL,                   TO_CTRL, KC_PGUP, KC_UP,   KC_HOME, KC_INS,  KC_DEL,
     //+--------+--------+--------+--------+--------+--------+                 +--------+--------+--------+--------+--------+--------+
         TD_CPS1, _______, KC_LEFT, KC_UP,   KC_RGHT, _______,                   _______, KC_LEFT, KC_UP,   KC_RGHT, KC_PSCR, KC_SLSF,
     //+--------+--------+--------+--------+--------+--------+                 +--------+--------+--------+--------+--------+--------+
-        KC_LCTL, _______, KC_END,  KC_DOWN, KC_PGDN, _______,                   _______, KC_PGDN, KC_DOWN, KC_END,  KC_PAUS, KC_NLCT,
+        KC_LCTL, _______, KC_END,  KC_DOWN, KC_PGDN, _______,                   _______, KC_PGDN, KC_DOWN, KC_END,  KC_PAUS, _______,
     //+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
         KC_F11,                             _______, KC_SPC,  KC_LALT, KC_ETAL, KC_DEL,  _______,                            KC_F12
     //+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+--------+
